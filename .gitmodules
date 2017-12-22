@@ -1,3 +1,6 @@
 [submodule "AttendanceSystemTeacherVersion"]
 	path = AttendanceSystemTeacherVersion
 	url = ./AttendanceSystemTeacherVersion/
+[submodule "AttendanceSystemStudentVersion"]
+	path = AttendanceSystemStudentVersion
+	url = ./AttendanceSystemStudentVersion
