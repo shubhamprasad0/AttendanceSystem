@@ -1,10 +1,11 @@
 # AttendanceSystem
 <h2>Face recognition based attendance system</h2>
 
-This repository contains two git submodules:-
+This repository contains three git submodules:-
 <ul>
 <li>AttendanceSystemTeacherVersion</li>
 <li>AttendanceSystemStudentVersion</li>
+<li>AttendanceSystemStudentBackend</li>
 </ul>
 
 The submodule is it’s own repo/work-area, with its own .git directory.
