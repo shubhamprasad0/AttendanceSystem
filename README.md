@@ -5,7 +5,7 @@ This repository contains three git submodules:-
 <ul>
 <li>AttendanceSystemTeacherVersion</li>
 <li>AttendanceSystemStudentVersion</li>
-<li>AttendanceSystemStudentBackend</li>
+<li>AttendanceSystemBackend</li>
 </ul>
 
 The submodule is it’s own repo/work-area, with its own .git directory.
