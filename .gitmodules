@@ -4,3 +4,6 @@
 [submodule "AttendanceSystemStudentVersion"]
 	path = AttendanceSystemStudentVersion
 	url = ./AttendanceSystemStudentVersion
+[submodule "AttendanceSystemBackend"]
+	path = AttendanceSystemBackend
+	url = https://github.com/arch-DJ/AttendanceSystemBackend
