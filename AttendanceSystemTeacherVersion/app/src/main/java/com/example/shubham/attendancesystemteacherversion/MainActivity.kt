@@ -1,5 +1,6 @@
 package com.example.shubham.attendancesystemteacherversion
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -85,5 +86,10 @@ class MainActivity : AppCompatActivity() {
         } finally {
             httpConnection?.disconnect()
         }
+    }
+
+    fun selectClassAndSubject(view: View) {
+        val intent = Intent(this, SelectionActivity::class.java)
+        startActivity(intent)
     }
 }
