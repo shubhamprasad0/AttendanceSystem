@@ -1,5 +1,6 @@
 package com.example.shubham.attendancesystemteacherversion
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,14 +8,11 @@ import android.view.View
 import android.widget.Toast
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
-import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import android.support.v7.app.AppCompatActivity
-import org.jetbrains.anko.alert
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -22,12 +20,18 @@ import org.jetbrains.anko.uiThread
 class MainActivity : AppCompatActivity() {
 
     private val serverURL: String = "http://archdj.pythonanywhere.com/api-token-auth/"
-    private var response: StringBuilder = StringBuilder("")
     private var result: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val token = getToken()
+
+        if (token != "NO TOKEN") {
+            selectClassAndSubject()
+            finish()
+        }
     }
 
     fun signIn(view: View) {
@@ -44,23 +48,42 @@ class MainActivity : AppCompatActivity() {
             doAsync {
                 result = authenticate()
                 uiThread {
-                    Log.d("MYLOG", result)
+                    saveToken(result)
+                    selectClassAndSubject()
+                    finish()
                 }
             }
         }
     }
 
+    /**
+     * Saves the authorization token for future reference
+     */
+    private fun saveToken(result: String) {
+        val preferences = getSharedPreferences("TOKEN_PREFERENCES", Context.MODE_PRIVATE)
+        val editor = preferences.edit()
+        editor.putString("TOKEN", result)
+        editor.apply()
+    }
 
+    /**
+     * Returns the authorization token
+     */
+    private fun getToken(): String {
+        val preferences = getSharedPreferences("TOKEN_PREFERENCES", Context.MODE_PRIVATE)
+        val token = preferences.getString("TOKEN", "NO TOKEN")
+        return token
+    }
 
 
     /**
      * Sends login-id and password to server as json and checks if the user is authenticated or not.
      */
     private fun authenticate(): String {
+        var response = ""
         val teacher = Teacher(teacher_id.text.toString(), password.text.toString())
         val gson = Gson()
         val teacherData: String = gson.toJson(teacher)
-        Log.d("MYLOG", teacherData)
 
         var httpConnection: HttpURLConnection? = null
 
@@ -75,7 +98,6 @@ class MainActivity : AppCompatActivity() {
             val outputStream = httpConnection.outputStream
             outputStream.write(teacherData.toByteArray())
             outputStream.flush()
-            Log.d("MYLOG", "I'm here")
 
             if (httpConnection.responseCode != 200) {
                 return "Failed: HTTP error code: ${httpConnection.responseCode}"
@@ -83,12 +105,10 @@ class MainActivity : AppCompatActivity() {
 
             // Receiving response
             val reader = httpConnection.inputStream.bufferedReader()
-//            val reader = BufferedReader(InputStreamReader(inputStream))
             reader.forEachLine {
-                response.append(it)
-                response.append('\r')
+                response = it
             }
-            return response.toString()
+            return response
 
         } catch (e: MalformedURLException) {
             e.printStackTrace()
@@ -101,7 +121,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun selectClassAndSubject(view: View) {
+    private fun selectClassAndSubject() {
         val intent = Intent(this, SelectionActivity::class.java)
         startActivity(intent)
     }
