@@ -14,6 +14,7 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import android.support.v7.app.AppCompatActivity
+import org.jetbrains.anko.alert
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -67,30 +68,28 @@ class MainActivity : AppCompatActivity() {
             val targetURL = URL(serverURL)
             httpConnection = targetURL.openConnection() as HttpURLConnection
             httpConnection.setRequestProperty("Content-Type", "application/json")
-            httpConnection.requestMethod = "GET"
+            httpConnection.requestMethod = "POST"
             httpConnection.connect()
 
             // Sending request
-//            val outputStream = httpConnection.outputStream
-//            outputStream.write(teacherData.toByteArray())
-//            outputStream.flush()
+            val outputStream = httpConnection.outputStream
+            outputStream.write(teacherData.toByteArray())
+            outputStream.flush()
             Log.d("MYLOG", "I'm here")
 
-//            if (httpConnection.responseCode != 200) {
-//                return "Failed: HTTP error code: ${httpConnection.responseCode}"
-//            }
+            if (httpConnection.responseCode != 200) {
+                return "Failed: HTTP error code: ${httpConnection.responseCode}"
+            }
 
             // Receiving response
-            val inputStream = httpConnection.inputStream
-            val reader = BufferedReader(InputStreamReader(inputStream))
-            reader.useLines {
-                it.map { line ->
-
-                    response.append(line)
-                    response.append('\r')
-                }
+            val reader = httpConnection.inputStream.bufferedReader()
+//            val reader = BufferedReader(InputStreamReader(inputStream))
+            reader.forEachLine {
+                response.append(it)
+                response.append('\r')
             }
             return response.toString()
+
         } catch (e: MalformedURLException) {
             e.printStackTrace()
             return "MalformedURLException"
