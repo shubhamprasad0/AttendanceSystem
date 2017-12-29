@@ -2,6 +2,7 @@ package com.example.shubham.attendancesystemteacherversion
 
 import android.os.Bundle
 import android.app.Activity
+import android.content.Intent
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
@@ -24,6 +25,11 @@ class SelectionActivity : Activity() {
         val adapter = ArrayAdapter.createFromResource(this, array, android.R.layout.simple_spinner_item)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
+    }
+
+    fun takeAttendance(view: View) {
+        val intent = Intent(this, AttendanceActivity::class.java)
+        startActivity(intent)
     }
 
 }

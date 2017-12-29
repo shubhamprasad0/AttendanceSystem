@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
      * Sends login-id and password to server as json and checks if the user is authenticated or not.
      */
     private fun authenticate(): String {
-        val teacher = Teacher(teacherId = teacher_id.text.toString(), password = password.text.toString())
+        val teacher = Teacher(teacher_id.text.toString(), password.text.toString())
         val gson = Gson()
         val teacherData: String = gson.toJson(teacher)
 

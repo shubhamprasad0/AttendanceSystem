@@ -84,6 +84,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="Go"
+        android:onClick="takeAttendance"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline4"
         app:layout_constraintStart_toStartOf="@+id/guideline3"
