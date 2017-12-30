@@ -7,6 +7,7 @@
     tools:context="com.example.shubham.attendancesystemteacherversion.SelectionActivity">
 
     <Spinner
+        android:clickable="false"
         android:id="@+id/spinner_branches"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -35,6 +36,7 @@
         app:layout_constraintGuide_percent="0.9" />
 
     <Spinner
+        android:clickable="false"
         android:id="@+id/spinner_section"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -49,6 +51,7 @@
         app:layout_constraintTop_toTopOf="@+id/guideline7" />
 
     <Spinner
+        android:clickable="false"
         android:id="@+id/spinner_subject"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

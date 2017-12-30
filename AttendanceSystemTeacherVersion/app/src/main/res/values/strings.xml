@@ -5,7 +5,7 @@
     <string name="button_off_text">Start Attendance</string>
     <string name="error_missing_permissions">This app does not have required permissions</string>
     <string-array name="semester">
-        <item>Select semester</item>
+        <item>Select Semester</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>

@@ -3,7 +3,6 @@ package com.example.shubham.attendancesystemteacherversion
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.gson.Gson
@@ -74,7 +73,6 @@ class MainActivity : AppCompatActivity() {
         val token = preferences.getString("TOKEN", "NO TOKEN")
         return token
     }
-
 
     /**
      * Sends login-id and password to server as json and checks if the user is authenticated or not.
