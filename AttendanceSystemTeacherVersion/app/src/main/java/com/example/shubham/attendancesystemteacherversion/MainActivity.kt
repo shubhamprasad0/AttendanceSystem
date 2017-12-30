@@ -12,7 +12,9 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.toast
 import org.jetbrains.anko.uiThread
 
 
@@ -20,6 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     private val serverURL: String = "http://archdj.pythonanywhere.com/api-token-auth/"
     private var result: String = ""
+    private var responseCode = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,10 +49,15 @@ class MainActivity : AppCompatActivity() {
         else {
             doAsync {
                 result = authenticate()
+                Log.d("MYLOG", result)
                 uiThread {
-                    saveToken(result)
-                    selectClassAndSubject()
-                    finish()
+                    if (responseCode == 200) {
+                        saveToken(result)
+                        selectClassAndSubject()
+                        finish()
+                    } else {
+                        toast("Log In failed, username/password is wrong")
+                    }
                 }
             }
         }
@@ -79,7 +87,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun authenticate(): String {
         var response = ""
-        val teacher = Teacher(teacher_id.text.toString(), password.text.toString())
+        val teacher = User(teacher_id.text.toString(), password.text.toString())
         val gson = Gson()
         val teacherData: String = gson.toJson(teacher)
 
@@ -96,8 +104,9 @@ class MainActivity : AppCompatActivity() {
             val outputStream = httpConnection.outputStream
             outputStream.write(teacherData.toByteArray())
             outputStream.flush()
+            responseCode = httpConnection.responseCode
 
-            if (httpConnection.responseCode != 200) {
+            if (responseCode != 200) {
                 return "Failed: HTTP error code: ${httpConnection.responseCode}"
             }
 

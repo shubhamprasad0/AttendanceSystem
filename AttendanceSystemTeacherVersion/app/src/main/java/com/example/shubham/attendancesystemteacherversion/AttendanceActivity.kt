@@ -35,7 +35,7 @@ import java.util.Locale
 
 abstract class AttendanceActivity : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
-    private val TAG = "Teacher App"
+    private val TAG = "User App"
 
     /**
      * These permissions are required before connecting to Nearby Connections. Only {@link
