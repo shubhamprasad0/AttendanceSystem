@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.support.annotation.CallSuper
 import android.support.annotation.RequiresApi
 import android.support.v4.content.ContextCompat
@@ -541,6 +542,11 @@ abstract class AttendanceActivity : AppCompatActivity(), GoogleApiClient.OnConne
 
     fun logE(msg: String) {
         Log.e(TAG, msg)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_attendance)
     }
 
 }

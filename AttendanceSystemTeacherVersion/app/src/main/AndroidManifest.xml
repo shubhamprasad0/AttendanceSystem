@@ -31,9 +31,7 @@
         <activity
             android:name=".SelectionActivity"
             android:label="Select Class and Subject" />
-        <activity
-            android:name=".AttendanceActivity"
-            android:label="Take Attendance"></activity>
+        <activity android:name=".AttendanceActivity"
+            android:label=""
     </application>
-
 </manifest>

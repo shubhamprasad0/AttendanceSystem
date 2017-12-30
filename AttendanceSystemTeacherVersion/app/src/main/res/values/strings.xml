@@ -26,16 +26,7 @@
         <item>Production</item>
         <item>Chemical</item>
     </string-array>
-    <string-array name="sections">
-        <item>Select Section</item>
-        <item>A</item>
-        <item>B</item>
-    </string-array>
-    <string-array name="subjects">
-        <item>Select Subject</item>
-        <item>Networking</item>
-        <item>Automata Theory</item>
-    </string-array>
+
     <string name="title_activity_settings">Settings</string>
 
     <!-- Strings related to Settings -->
