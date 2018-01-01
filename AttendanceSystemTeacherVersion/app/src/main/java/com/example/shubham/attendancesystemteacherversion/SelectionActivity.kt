@@ -31,7 +31,6 @@ class SelectionActivity : Activity() {
     private var sectionsAndCourses = ""
     private var numCourses = -1
     private var courses = arrayListOf<String>()
-    private var selectedCourseNum = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +76,8 @@ class SelectionActivity : Activity() {
                             spinner_section.isClickable = true
                         }
                     }
-
+                    // populate the next spinners
+                    // enable the next spinner
                 } else {
                     spinner_section.isClickable = false
                     spinner_subject.isClickable = false
@@ -91,7 +91,7 @@ class SelectionActivity : Activity() {
 
         spinner_section.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                section = parent?.getItemAtPosition(position).toString()
+                val section = parent?.getItemAtPosition(position).toString()
                 if (section != "Select Section") {
                     spinner_subject.isClickable = true
                 } else {
@@ -102,25 +102,6 @@ class SelectionActivity : Activity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 // do nothing
             }
-        }
-
-        spinner_subject.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                course = parent?.getItemAtPosition(position).toString()
-                if (course != "Select Course") {
-                    selectedCourseNum = position
-                    all_selected.isClickable = true
-                } else {
-                    toast("Select a valid course")
-                    all_selected.isClickable = false
-                }
-
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // do nothing
-            }
-
         }
     }
 
