@@ -29,7 +29,7 @@ class SelectionActivity : Activity() {
     private var course: String = ""
     private var responseCode = -1
     private var sectionsAndCourses = ""
-    private var numCourses = -1
+    private var courseId = -1
     private var courses = arrayListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -91,11 +91,24 @@ class SelectionActivity : Activity() {
 
         spinner_section.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val section = parent?.getItemAtPosition(position).toString()
-                if (section != "Select Section") {
-                    spinner_subject.isClickable = true
+                section = parent?.getItemAtPosition(position).toString()
+                spinner_subject.isClickable = section != "Select Section"
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // do nothing
+            }
+        }
+
+        spinner_subject.onItemSelectedListener = object: AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                course = parent?.getItemAtPosition(position).toString()
+                if (course != "Select Course") {
+                    all_selected.isClickable = true
+                    courseId = position
                 } else {
-                    spinner_subject.isClickable = false
+                    all_selected.isClickable = false
+                    toast("Select a valid subject")
                 }
             }
 
@@ -103,6 +116,7 @@ class SelectionActivity : Activity() {
                 // do nothing
             }
         }
+
     }
 
     private fun displaySpinnerChoices(spinner: Spinner, array: Int) {
@@ -119,12 +133,16 @@ class SelectionActivity : Activity() {
 
     fun takeAttendance(view: View) {
         val intent = Intent(this, AttendanceActivity::class.java)
+        intent.putExtra("EXTRA_SEMESTER", semester)
+        intent.putExtra("EXTRA_BRANCH", branch)
+        intent.putExtra("EXTRA_SECTION", section)
+        intent.putExtra("EXTRA_COURSE_ID", courseId)
         startActivity(intent)
     }
 
     private fun getSectionsAndCourses(semester: String, branch: String): String {
         val serverURL = "http://archdj.pythonanywhere.com/deptinfo/"
-        var response = StringBuilder("")
+        var response = ""
         val semesterAndBranch = SemesterAndBranch(semester, branch)
         val gson = Gson()
         val semesterAndBranchData: String = gson.toJson(semesterAndBranch)
@@ -152,10 +170,9 @@ class SelectionActivity : Activity() {
             // Receiving response
             val reader = httpConnection.inputStream.bufferedReader()
             reader.forEachLine {
-                response.append(it)
-                response.append("\r\n")
+                response = it
             }
-            return response.toString()
+            return response
 
         } catch (e: MalformedURLException) {
             e.printStackTrace()

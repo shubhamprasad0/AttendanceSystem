@@ -21,6 +21,10 @@ import com.google.android.gms.nearby.connection.Payload
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import java.util.*
 import android.support.v4.content.ContextCompat
+import android.support.v4.app.ActivityCompat
+import android.widget.Toast
+
+
 
 
 
@@ -146,12 +150,11 @@ abstract class ConnectionsActivity : AppCompatActivity(), GoogleApiClient.OnConn
      * Our Activity has just been made visible to the user. Our GoogleApiClient will start connecting
      * after super.onStart() is called.
      */
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onStart() {
         if (hasPermissions(this, REQUIRED_PERMISSIONS)) {
             createGoogleApiClient()
         } else {
-            requestPermissions(REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS)
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_REQUIRED_PERMISSIONS)
         }
         super.onStart()
     }
@@ -450,16 +453,6 @@ abstract class ConnectionsActivity : AppCompatActivity(), GoogleApiClient.OnConn
      */
     protected fun onReceive(endpoint: Endpoint, payload: Payload) {}
 
-    /**
-     * An optional hook to pool any permissions the app needs with the permissions ConnectionsActivity
-     * will request.
-     *
-     * @return All permissions required for the app to properly function.
-     */
-    protected fun getRequiredPermissions(): Array<String> {
-        return REQUIRED_PERMISSIONS
-    }
-
     /** @return The client's name. Visible to others when connecting.
      */
     protected abstract fun getName(): String
@@ -500,4 +493,22 @@ abstract class ConnectionsActivity : AppCompatActivity(), GoogleApiClient.OnConn
         }
         return true
     }
+
+    private fun checkPermission(): Boolean {
+        val result = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        return result == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermission() {
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+            Toast.makeText(this, "GPS permission allows us to access location data. Please allow in App Settings for additional functionality.", Toast.LENGTH_LONG).show()
+
+        } else {
+
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_CODE_REQUIRED_PERMISSIONS)
+        }
+    }
+
 }
