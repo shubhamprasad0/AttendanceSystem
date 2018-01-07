@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private val serverURL: String = "http://archdj.pythonanywhere.com/api-token-auth/"
     private var result: String = ""
     private var responseCode = -1
+    private var studentId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +51,9 @@ class MainActivity : AppCompatActivity() {
                 result = authenticate()
                 uiThread {
                     if (responseCode == 200) {
+                        studentId = student_username.text.toString()
                         saveToken(result)
+                        saveUserName()
                         giveAttendance()
                         finish()
                     } else {
@@ -69,6 +72,25 @@ class MainActivity : AppCompatActivity() {
         val editor = preferences.edit()
         editor.putString("TOKEN_STUDENT", result)
         editor.apply()
+    }
+
+    /**
+     * Saves the username for future use
+     */
+    private fun saveUserName() {
+        val preferences = getSharedPreferences("STUDENT_USERNAME_PREFERENCES", Context.MODE_PRIVATE)
+        val editor = preferences.edit()
+        editor.putString("STUDENT_USERNAME", studentId)
+        editor.apply()
+    }
+
+    /**
+     * Returns the authorization token
+     */
+    private fun getUserName(): String {
+        val preferences = getSharedPreferences("STUDENT_USERNAME_PREFERENCES", Context.MODE_PRIVATE)
+        val studentUserName = preferences.getString("STUDENT_USERNAME", "no_student")
+        return studentUserName
     }
 
     /**
@@ -128,6 +150,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun giveAttendance() {
         val intent = Intent(this, AttendanceActivity::class.java)
+
+        intent.putExtra("STUDENT_ID", getUserName())
         startActivity(intent)
     }
 }
