@@ -180,7 +180,7 @@ class ConnectionActivity : AppCompatActivity() {
             try {
                 mSocket = mDevice.createRfcommSocketToServiceRecord(uuid)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.d("BT_CLIENT_CONN", e.message)
             }
         }
 
@@ -226,12 +226,12 @@ class ConnectionActivity : AppCompatActivity() {
             try {
                 inputStream = mSocket.inputStream
             } catch (e: Exception) {
-                Log.e("BT_SERVER_CONN", "Error occurred when creating input stream ${e.message}")
+                Log.e("BT_CLIENT_CONN", "Error occurred when creating input stream ${e.message}")
             }
             try {
                 outputStream = mSocket.outputStream
             } catch (e: Exception) {
-                Log.e("BT_SERVER_CONN", "Error occurred when creating output stream ${e.message}")
+                Log.e("BT_CLIENT_CONN", "Error occurred when creating output stream ${e.message}")
             }
         }
 
@@ -254,7 +254,7 @@ class ConnectionActivity : AppCompatActivity() {
                             buffer)
                     readMsg.sendToTarget()
                 } catch (e: Exception) {
-                    Log.d("BT_SERVER_CONN", "InputStream was disconnected ${e.message}")
+                    Log.d("BT_CLIENT_CONN", "InputStream was disconnected ${e.message}")
                     break
                 }
             }
@@ -274,7 +274,7 @@ class ConnectionActivity : AppCompatActivity() {
                         buffer)
                 writtenMsg.sendToTarget()
             } catch (e: Exception) {
-                Log.e("BT_SERVER_CONN", "Error occurred when sending data ${e.message}")
+                Log.e("BT_CLIENT_CONN", "Error occurred when sending data ${e.message}")
 
                 // Send a failure message back to the activity
                 val writeErrorMsg = uiHandler.obtainMessage(MessageConstants.MESSAGE_TOAST)
@@ -289,7 +289,7 @@ class ConnectionActivity : AppCompatActivity() {
             try {
                 mSocket.close()
             } catch (e: Exception) {
-                Log.e("BT_SERVER_CONN", "Could not close the connect socket ${e.message}")
+                Log.e("BT_CLIENT_CONN", "Could not close the connect socket ${e.message}")
             }
         }
     }
