@@ -2,8 +2,9 @@ package com.example.shubham.attendancesystemstudentversion
 
 import android.content.Context
 import android.content.Intent
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.gson.Gson
@@ -22,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private var result: String = ""
     private var responseCode = -1
     private var studentId = ""
+    private lateinit var student: Student
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,12 +54,18 @@ class MainActivity : AppCompatActivity() {
                     if (responseCode == 200) {
                         studentId = student_username.text.toString()
                         saveToken(result)
-                        saveUserName()
                         startConnection()
                         finish()
                     } else {
                         toast("Log In failed, username/password is wrong")
                     }
+                }
+                val studentDetails = getPersonDetails(studentId)
+                Log.d("MYLOG", studentDetails)
+                if (responseCode == 200) {
+                    val gson = Gson()
+                    student = gson.fromJson(studentDetails, Student::class.java)
+                    saveDetails(student)
                 }
             }
         }
@@ -76,20 +84,13 @@ class MainActivity : AppCompatActivity() {
     /**
      * Saves the username for future use
      */
-    private fun saveUserName() {
-        val preferences = getSharedPreferences("STUDENT_USERNAME_PREFERENCES", Context.MODE_PRIVATE)
+    private fun saveDetails(student: Student) {
+        val preferences = getSharedPreferences("STUDENT_DETAILS_PREFERENCES", Context.MODE_PRIVATE)
         val editor = preferences.edit()
-        editor.putString("STUDENT_USERNAME", studentId)
+        val gson = Gson()
+        val studentDetails = gson.toJson(student)
+        editor.putString("STUDENT", studentDetails)
         editor.apply()
-    }
-
-    /**
-     * Returns the authorization token
-     */
-    private fun getUserName(): String {
-        val preferences = getSharedPreferences("STUDENT_USERNAME_PREFERENCES", Context.MODE_PRIVATE)
-        val studentUserName = preferences.getString("STUDENT_USERNAME", "no_student")
-        return studentUserName
     }
 
     /**
@@ -150,5 +151,48 @@ class MainActivity : AppCompatActivity() {
     private fun startConnection() {
         val intent = Intent(this, ConnectionActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun getPersonDetails(studentId: String): String {
+        var response = ""
+        val serverURL = "http://archdj.pythonanywhere.com/studentinfo/"
+        val studentIdJson = """{"username": "$studentId"}"""
+        Log.d("MYLOG", studentIdJson)
+
+        var httpConnection: HttpURLConnection? = null
+
+        try {
+            val targetURL = URL(serverURL)
+            httpConnection = targetURL.openConnection() as HttpURLConnection
+            httpConnection.setRequestProperty("Content-Type", "application/json")
+            httpConnection.requestMethod = "POST"
+            httpConnection.connect()
+
+            // Sending request
+            val outputStream = httpConnection.outputStream
+            outputStream.write(studentIdJson.toByteArray())
+            outputStream.flush()
+            responseCode = httpConnection.responseCode
+
+            if (responseCode != 200) {
+                return "Failed: HTTP error code: $responseCode"
+            }
+
+            // Receiving response
+            val reader = httpConnection.inputStream.bufferedReader()
+            reader.forEachLine {
+                response = it
+            }
+            return response
+
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+            return "MalformedURLException"
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return "IOException"
+        } finally {
+            httpConnection?.disconnect()
+        }
     }
 }

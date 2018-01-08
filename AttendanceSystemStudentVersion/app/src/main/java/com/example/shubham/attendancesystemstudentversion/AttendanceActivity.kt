@@ -10,9 +10,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.os.AsyncTask
+import android.os.*
 import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -45,16 +44,27 @@ class AttendanceActivity : AppCompatActivity() {
     private lateinit var imageBitmap: Bitmap
     private val FACE_RECT_SCALE_RATIO = 1.3
     private var studentId = ""
-    private lateinit var personGroupId: String
-    private lateinit var personId: UUID
-    private var responseCode = -1
+    private lateinit var student: Student
+    private val uiHandler: Handler
+
+    init {
+        uiHandler = object: Handler(Looper.getMainLooper()) {
+            override fun handleMessage(msg: Message) {
+                when (msg.what) {
+                    ConnectionActivity.MessageConstants.MESSAGE_WRITE -> {
+                        Log.d("Handle Student Msgs", msg.obj.toString())
+                    }
+                }
+            }
+        }
+    }
 
     fun logOut(menuItem: MenuItem) {
         var preferences = getSharedPreferences("TOKEN_PREFERENCES_STUDENT", Context.MODE_PRIVATE)
         var editor = preferences.edit()
         editor.clear()
         editor.apply()
-        preferences = getSharedPreferences("STUDENT_USERNAME_PREFERENCES", Context.MODE_PRIVATE)
+        preferences = getSharedPreferences("STUDENT_DETAILS_PREFERENCES", Context.MODE_PRIVATE)
         editor = preferences.edit()
         editor.clear()
         editor.apply()
@@ -72,6 +82,7 @@ class AttendanceActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance)
         studentId = intent.getStringExtra("STUDENT_ID")
+        initStudent()
         Log.d("Mylog", studentId)
         button.setOnClickListener {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -83,6 +94,15 @@ class AttendanceActivity : AppCompatActivity() {
             progressDialog.setTitle("Please wait")
 
             faceServiceClient = FaceServiceRestClient(getString(R.string.endpoint), getString(R.string.subscription_key))
+        }
+    }
+
+    private fun initStudent() {
+        val preferences = getSharedPreferences("STUDENT_DETAILS_PREFERENCES", Context.MODE_PRIVATE)
+        val json = preferences.getString("STUDENT", "no value")
+        if (json != "no value") {
+            val gson = Gson()
+            student = gson.fromJson(json, Student::class.java)
         }
     }
 
@@ -104,7 +124,6 @@ class AttendanceActivity : AppCompatActivity() {
         private var isSuccess = true
 
         override fun doInBackground(vararg params: InputStream?): Array<Face>? {
-//            val faceServiceClient = FaceServiceRestClient(getString(R.string.endpoint), getString(R.string.subscription_key))
             try {
                 publishProgress("Detecting...")
 
@@ -141,20 +160,12 @@ class AttendanceActivity : AppCompatActivity() {
 
         override fun doInBackground(vararg params: Void?): VerifyResult? {
             try {
-                val studentDetails = getPersonDetails(studentId)
-                Log.d("MYLOG", studentDetails)
-                if (responseCode == 200) {
-                    val gson = Gson()
-                    val student = gson.fromJson(studentDetails, Student::class.java)
-                    personGroupId = student.person_group_id
-                    personId = student.person_id
-                }
                 publishProgress("Verifying...")
 
                 return faceServiceClient.verify(
                         faceId,
-                        personGroupId,
-                        personId)
+                        student.person_group_id,
+                        student.person_id)
             } catch (e: Exception) {
                 publishProgress(e.message)
                 return null
@@ -191,48 +202,7 @@ class AttendanceActivity : AppCompatActivity() {
         verificationTask.execute()
     }
 
-    private fun getPersonDetails(studentId: String): String {
-        var response = ""
-        val serverURL = "http://archdj.pythonanywhere.com/studentinfo/"
-        val studentIdJson = """{"username": "$studentId"}"""
-        Log.d("MYLOG", studentIdJson)
 
-        var httpConnection: HttpURLConnection? = null
-
-        try {
-            val targetURL = URL(serverURL)
-            httpConnection = targetURL.openConnection() as HttpURLConnection
-            httpConnection.setRequestProperty("Content-Type", "application/json")
-            httpConnection.requestMethod = "POST"
-            httpConnection.connect()
-
-            // Sending request
-            val outputStream = httpConnection.outputStream
-            outputStream.write(studentIdJson.toByteArray())
-            outputStream.flush()
-            responseCode = httpConnection.responseCode
-
-            if (responseCode != 200) {
-                return "Failed: HTTP error code: $responseCode"
-            }
-
-            // Receiving response
-            val reader = httpConnection.inputStream.bufferedReader()
-            reader.forEachLine {
-                response = it
-            }
-            return response
-
-        } catch (e: MalformedURLException) {
-            e.printStackTrace()
-            return "MalformedURLException"
-        } catch (e: IOException) {
-            e.printStackTrace()
-            return "IOException"
-        } finally {
-            httpConnection?.disconnect()
-        }
-    }
 
     private fun setUiAfterDetection(result: Array<Face>?, isSuccess: Boolean) {
         progressDialog.dismiss()

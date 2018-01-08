@@ -3,12 +3,16 @@ package com.example.shubham.attendancesystemteacherversion
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
@@ -16,6 +20,9 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.activity_connection.*
 import org.jetbrains.anko.toast
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.*
 
 class ConnectionActivity : AppCompatActivity() {
 
@@ -27,7 +34,22 @@ class ConnectionActivity : AppCompatActivity() {
     private var discoveredDevicesNames = ArrayList<String>()
     private lateinit var discoveredDevicesAdapter: ArrayAdapter<*>
     private lateinit var pairedDevicesAdatpter: ArrayAdapter<*>
+    private val uuid = UUID.fromString("ad50d117-8c99-497d-af7a-929214e53577")
+    private val uiHandler: Handler
+    private var attendedStudentIds = ""
 
+    init {
+        uiHandler = object: Handler(Looper.getMainLooper()) {
+            override fun handleMessage(msg: Message) {
+                when(msg.what) {
+                    MessageConstants.MESSAGE_READ -> {
+                        toast(msg.obj.toString())
+                        Log.d("Handle Message", msg.obj.toString())
+                    }
+                }
+            }
+        }
+    }
     /**
      * initialize the default bluetooth adapter
      */
@@ -128,9 +150,20 @@ class ConnectionActivity : AppCompatActivity() {
                     discoveredDevicesNames.add(deviceName)
                     discoveredDevicesAdapter.notifyDataSetChanged()
                 }
-                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> toast("Discovery Finished")
+                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                    toast("Discovery Finished")
+                    connectToDiscoveredDevices()
+                }
+
                 BluetoothAdapter.ACTION_DISCOVERY_STARTED -> toast("Discovery Started")
             }
+        }
+    }
+
+    private fun connectToDiscoveredDevices() {
+        for (device in discoveredDevices) {
+            val connectThread = ConnectThread(device)
+            connectThread.start()
         }
     }
 
@@ -139,4 +172,134 @@ class ConnectionActivity : AppCompatActivity() {
         unregisterReceiver(receiver)
     }
 
+    private inner class ConnectThread(device:BluetoothDevice): Thread() {
+        private lateinit var mSocket: BluetoothSocket
+        private var mDevice = device
+
+        init {
+            try {
+                mSocket = mDevice.createRfcommSocketToServiceRecord(uuid)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        override fun run() {
+            bluetoothAdapter?.cancelDiscovery()
+            try {
+                mSocket.connect()
+            } catch (e: Exception) {
+                try {
+                    mSocket.close()
+                } catch (e: Exception) {
+                    Log.e("BT_CLIENT_CONN", e.message)
+                }
+                return
+            }
+
+            // The connection attempt succeeded
+            manageMyConnectedSocket(mSocket)
+        }
+
+        fun cancel() {
+            try {
+                mSocket.close()
+            } catch (e: Exception) {
+                Log.e("BT_CLIENT_CONN", e.message)
+            }
+        }
+    }
+
+    private fun manageMyConnectedSocket(socket: BluetoothSocket) {
+        val connectedThread = ConnectedThread(socket)
+        connectedThread.start()
+    }
+
+    private inner class ConnectedThread(socket:BluetoothSocket): Thread() {
+        private var mSocket: BluetoothSocket = socket
+        private lateinit var inputStream: InputStream
+        private lateinit var outputStream: OutputStream
+        private lateinit var buffer: ByteArray
+
+        init {
+
+            try {
+                inputStream = mSocket.inputStream
+            } catch (e: Exception) {
+                Log.e("BT_SERVER_CONN", "Error occurred when creating input stream ${e.message}")
+            }
+            try {
+                outputStream = mSocket.outputStream
+            } catch (e: Exception) {
+                Log.e("BT_SERVER_CONN", "Error occurred when creating output stream ${e.message}")
+            }
+        }
+
+        override fun run() {
+            buffer = ByteArray(1024)
+
+            // bytes returned from read()
+            var numBytes: Int
+
+            // Keep listening to the InputStream until an exception occurs
+            while (true) {
+                try {
+                    // Read from the InputStream
+                    numBytes = inputStream.read(buffer)
+                    // Send the obtained bytes to the UI activity
+                    val readMsg = uiHandler.obtainMessage(
+                            MessageConstants.MESSAGE_READ,
+                            numBytes,
+                            -1,
+                            buffer)
+                    readMsg.sendToTarget()
+                } catch (e: Exception) {
+                    Log.d("BT_SERVER_CONN", "InputStream was disconnected ${e.message}")
+                    break
+                }
+            }
+        }
+
+        /**
+         * Call this from the main activity to send data to the remote device.
+         */
+        fun write(bytes: ByteArray) {
+            try {
+                outputStream.write(bytes)
+
+                val writtenMsg = uiHandler.obtainMessage(
+                        MessageConstants.MESSAGE_WRITE,
+                        -1,
+                        -1,
+                        buffer)
+                writtenMsg.sendToTarget()
+            } catch (e: Exception) {
+                Log.e("BT_SERVER_CONN", "Error occurred when sending data ${e.message}")
+
+                // Send a failure message back to the activity
+                val writeErrorMsg = uiHandler.obtainMessage(MessageConstants.MESSAGE_TOAST)
+                val bundle = Bundle()
+                bundle.putString("toast", "Couldn't send data to the other device")
+                writeErrorMsg.data = bundle
+                uiHandler.sendMessage(writeErrorMsg)
+            }
+        }
+
+        fun cancel() {
+            try {
+                mSocket.close()
+            } catch (e: Exception) {
+                Log.e("BT_SERVER_CONN", "Could not close the connect socket ${e.message}")
+            }
+        }
+    }
+
+    enum class MessageConstants {
+        ;
+        companion object {
+            val MESSAGE_READ = 0
+            val MESSAGE_WRITE = 1
+            val MESSAGE_TOAST = 2
+        }
+    }
 }

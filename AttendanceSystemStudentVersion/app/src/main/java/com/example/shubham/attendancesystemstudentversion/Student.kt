@@ -12,5 +12,6 @@ class Student(
       val person_id: UUID,
       val roll: String,
       val section: String,
-      val semester: Int
+      val semester: Int,
+      val id: Int
 )
