@@ -77,6 +77,7 @@ class ConnectionActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_BT_DISCOVERABILITY && resultCode == Activity.RESULT_OK) {
             toast("Device discoverable for $DURATION seconds")
+            acceptConnection()
         }
     }
 
@@ -85,6 +86,11 @@ class ConnectionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_connection)
         initStudent()
         initializeDefaultBluetoothAdapter()
+    }
+
+    private fun acceptConnection() {
+        val acceptThread = AcceptThread()
+        acceptThread.start()
     }
 
     private inner class AcceptThread: Thread() {
