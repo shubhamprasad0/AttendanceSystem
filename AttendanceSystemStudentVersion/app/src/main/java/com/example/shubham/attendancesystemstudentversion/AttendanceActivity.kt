@@ -2,6 +2,8 @@ package com.example.shubham.attendancesystemstudentversion
 
 import android.app.Activity
 import android.app.ProgressDialog
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -65,6 +67,7 @@ class AttendanceActivity : AppCompatActivity() {
         inflater.inflate(R.menu.options_menu, menu)
         return true
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance)

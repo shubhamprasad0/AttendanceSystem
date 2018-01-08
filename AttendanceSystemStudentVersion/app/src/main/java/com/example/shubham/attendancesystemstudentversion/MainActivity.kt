@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.gson.Gson
@@ -31,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         val token = getToken()
 
         if (token != "NO TOKEN") {
-            giveAttendance()
+            startConnection()
             finish()
         }
     }
@@ -54,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                         studentId = student_username.text.toString()
                         saveToken(result)
                         saveUserName()
-                        giveAttendance()
+                        startConnection()
                         finish()
                     } else {
                         toast("Log In failed, username/password is wrong")
@@ -148,10 +147,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun giveAttendance() {
-        val intent = Intent(this, AttendanceActivity::class.java)
-
-        intent.putExtra("STUDENT_ID", getUserName())
+    private fun startConnection() {
+        val intent = Intent(this, ConnectionActivity::class.java)
         startActivity(intent)
     }
 }
