@@ -22,27 +22,13 @@ import java.net.URL
 import java.util.*
 import kotlin.collections.ArrayList
 
-class AttendanceActivity: ConnectionsActivity() {
+class AttendanceActivity: AppCompatActivity() {
 
     private lateinit var SERVICE_ID: String
     var responseCode = -1
 
     /** A random UID used as this device's endpoint name.  */
     private lateinit var mName: String
-
-    // list of items
-
-
-
-
-
-    override fun getName(): String {
-        return mName
-    }
-
-    override fun getServiceId(): String {
-        return SERVICE_ID
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

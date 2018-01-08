@@ -2,11 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.shubham.attendancesystemteacherversion">
 
-    <!-- Required for Nearby Connections -->
+    <!-- Required for Bluetooth connection -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!-- Required for server access -->
@@ -36,8 +34,8 @@
             android:label="Select Class and Subject" />
         <activity
             android:name=".AttendanceActivity"
-            android:label="Take Attendance"/>
-        <activity android:name=".ConnectionsActivity"></activity>
+            android:label="Take Attendance" />
+        <activity android:name=".ConnectionActivity"></activity>
     </application>
 
 </manifest>
