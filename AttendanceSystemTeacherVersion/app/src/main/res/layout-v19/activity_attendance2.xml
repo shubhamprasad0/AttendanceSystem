@@ -21,14 +21,17 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:onClick="startAttendance"
         android:text="Start Attendance"
-        android:textOn="Stop Attendance"
-        android:textOff="Start Attendance"
         android:textAllCaps="true"
+        android:textOff="Start Attendance"
+        android:textOn="Stop Attendance"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/guideline9" />
+        app:layout_constraintTop_toTopOf="@+id/guideline9"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ListView
         android:id="@+id/student_list"

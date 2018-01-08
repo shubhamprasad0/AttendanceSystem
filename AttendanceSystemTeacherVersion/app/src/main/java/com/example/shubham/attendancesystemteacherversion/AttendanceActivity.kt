@@ -1,9 +1,11 @@
 package com.example.shubham.attendancesystemteacherversion
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.ListAdapter
 import com.google.android.gms.common.api.GoogleApiClient
@@ -28,13 +30,9 @@ class AttendanceActivity: AppCompatActivity() {
     private lateinit var SERVICE_ID: String
     var responseCode = -1
 
-    /** A random UID used as this device's endpoint name.  */
-    private lateinit var mName: String
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance2)
-        mName = generateRandomName()
         SERVICE_ID = getString(R.string.service_id)
         val semester = Integer.parseInt(intent.getStringExtra("EXTRA_SEMESTER")) as Int
         val branch = intent.getStringExtra("EXTRA_BRANCH")
@@ -175,15 +173,6 @@ class AttendanceActivity: AppCompatActivity() {
 //        student_list.adapter = adapter
     }
 
-    private fun generateRandomName(): String {
-        var name = ""
-        val random = Random()
-        for (i in 0..4) {
-            name += random.nextInt(10)
-        }
-        return name
-    }
-
     private fun fetchStudents(semester: Int, branch: String, section: String, courseId: Int): String {
         Log.d("MYLOG", "coming in fetchStudents")
         val serverURL = "http://archdj.pythonanywhere.com/students/"
@@ -227,6 +216,11 @@ class AttendanceActivity: AppCompatActivity() {
         } finally {
             httpConnection?.disconnect()
         }
+    }
+
+    fun startAttendance(v: View) {
+        val intent = Intent(this, ConnectionActivity::class.java)
+        startActivity(intent)
     }
 
 }
