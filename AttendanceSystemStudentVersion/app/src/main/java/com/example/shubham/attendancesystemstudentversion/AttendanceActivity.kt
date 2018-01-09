@@ -24,6 +24,7 @@ import com.microsoft.projectoxford.face.contract.Face
 import com.microsoft.projectoxford.face.contract.FaceRectangle
 import com.microsoft.projectoxford.face.contract.VerifyResult
 import kotlinx.android.synthetic.main.activity_attendance.*
+import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.toast
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -45,6 +46,7 @@ class AttendanceActivity : AppCompatActivity() {
     private var studentId = ""
     private lateinit var student: Student
     private val uiHandler: Handler
+    var responseCode = -1
 
     init {
         uiHandler = object: Handler(Looper.getMainLooper()) {
@@ -80,9 +82,9 @@ class AttendanceActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance)
-        studentId = intent.getStringExtra("STUDENT_ID")
+//        studentId = intent.getStringExtra("STUDENT_ID")
         initStudent()
-        Log.d("Mylog", studentId)
+//        Log.d("Mylog", studentId)
         button.setOnClickListener {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (takePictureIntent.resolveActivity(packageManager) != null) {
@@ -189,7 +191,17 @@ class AttendanceActivity : AppCompatActivity() {
     private fun setUiAfterVerification(result: VerifyResult) {
         progressDialog.dismiss()
         if (result.isIdentical) {
-            toast("Face matched, attendance successful")
+            doAsync {
+                val courseAttendanceJson = getCourseAttendance()
+                Log.d("mylog", courseAttendanceJson)
+                val gson = Gson()
+                val courseAttendance = gson.fromJson(courseAttendanceJson, CourseAttendance::class.java)
+                val response = updateAttendance(courseAttendance)
+                Log.d("mylog", response)
+                toast("Face matched, attendance successful")
+
+            }
+
         } else {
             toast("Face does not match with database, attendance failed!!")
         }
@@ -263,5 +275,94 @@ class AttendanceActivity : AppCompatActivity() {
         result.height = sideLength.toInt()
 
         return result
+    }
+
+    private fun getCourseAttendance(): String {
+        var response = ""
+        val serverURL = "http://archdj.pythonanywhere.com/getattendance/"
+        val studentIdJson = """{"name": "${student.name}"}"""
+        Log.d("studentlog", studentIdJson)
+
+        var httpConnection: HttpURLConnection? = null
+
+        try {
+            val targetURL = URL(serverURL)
+            httpConnection = targetURL.openConnection() as HttpURLConnection
+            httpConnection.setRequestProperty("Content-Type", "application/json")
+            httpConnection.requestMethod = "POST"
+            httpConnection.connect()
+
+            // Sending request
+            val outputStream = httpConnection.outputStream
+            outputStream.write(studentIdJson.toByteArray())
+            outputStream.flush()
+            responseCode = httpConnection.responseCode
+
+            if (responseCode != 200) {
+                return "Failed: HTTP error code: $responseCode"
+            }
+
+            // Receiving response
+            val reader = httpConnection.inputStream.bufferedReader()
+            reader.forEachLine {
+                response = it
+            }
+            return response
+
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+            return "MalformedURLException"
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return "IOException"
+        } finally {
+            httpConnection?.disconnect()
+        }
+    }
+
+    fun updateAttendance(courseAttendance: CourseAttendance): String {
+        responseCode = -1
+        var response = ""
+        val serverURL = "http://archdj.pythonanywhere.com/students/${student.id}/"
+        val courseAttendanceNew = CourseAttendance(courseAttendance.course1_attended + 1, courseAttendance.course1_total + 1)
+        val gson = Gson()
+        val courseAttendanceNewString = gson.toJson(courseAttendanceNew)
+        Log.d("studentlog", courseAttendanceNewString)
+
+        var httpConnection: HttpURLConnection? = null
+
+        try {
+            val targetURL = URL(serverURL)
+            httpConnection = targetURL.openConnection() as HttpURLConnection
+            httpConnection.setRequestProperty("Content-Type", "application/json")
+            httpConnection.requestMethod = "PUT"
+            httpConnection.connect()
+
+            // Sending request
+            val outputStream = httpConnection.outputStream
+            outputStream.write(courseAttendanceNewString.toByteArray())
+            outputStream.flush()
+            responseCode = httpConnection.responseCode
+
+            if (responseCode != 200) {
+                return "Failed: HTTP error code: $responseCode"
+            }
+
+            // Receiving response
+            val reader = httpConnection.inputStream.bufferedReader()
+            reader.forEachLine {
+                response = it
+            }
+            return response
+
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+            return "MalformedURLException"
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return "IOException"
+        } finally {
+            httpConnection?.disconnect()
+        }
     }
 }

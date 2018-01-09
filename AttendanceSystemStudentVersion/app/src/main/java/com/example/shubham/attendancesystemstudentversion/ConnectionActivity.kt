@@ -94,8 +94,8 @@ class ConnectionActivity : AppCompatActivity() {
         if (requestCode == REQUEST_BT_DISCOVERABILITY && resultCode == DURATION) {
             toast("Device discoverable for $DURATION seconds")
             acceptConnection()
-//            val intent = Intent(this, AttendanceActivity::class.java)
-//            startActivity(intent)
+            val intent = Intent(this, AttendanceActivity::class.java)
+            startActivity(intent)
         } else {
             toast("Device not discoverable")
         }
@@ -137,7 +137,7 @@ class ConnectionActivity : AppCompatActivity() {
                 }
 
                 if (socket != null) {
-                    manageMyConnectedSocket(socket)
+//                    manageMyConnectedSocket(socket)
                 }
             }
         }
