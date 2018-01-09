@@ -188,6 +188,7 @@ class ConnectionActivity : AppCompatActivity() {
             bluetoothAdapter?.cancelDiscovery()
             try {
                 mSocket.connect()
+                Log.d("teacher log", "connected to ${mDevice.name}")
             } catch (e: Exception) {
                 try {
                     mSocket.close()
@@ -211,6 +212,7 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     private fun manageMyConnectedSocket(socket: BluetoothSocket) {
+        Log.d("teacher log", "in manage connection")
         val connectedThread = ConnectedThread(socket)
         connectedThread.start()
     }
@@ -244,6 +246,7 @@ class ConnectionActivity : AppCompatActivity() {
             // Keep listening to the InputStream until an exception occurs
             while (true) {
                 try {
+                    Log.d("teacher log", "trying to read data")
                     // Read from the InputStream
                     numBytes = inputStream.read(buffer)
                     // Send the obtained bytes to the UI activity

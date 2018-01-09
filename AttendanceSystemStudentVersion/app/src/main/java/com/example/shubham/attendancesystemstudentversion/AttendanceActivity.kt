@@ -37,7 +37,6 @@ import kotlin.math.max
 import kotlin.math.min
 
 class AttendanceActivity : AppCompatActivity() {
-
     private val REQUEST_IMAGE_CAPTURE = 1
     private lateinit var faceServiceClient: FaceServiceClient
     private lateinit var progressDialog: ProgressDialog
@@ -264,6 +263,5 @@ class AttendanceActivity : AppCompatActivity() {
         result.height = sideLength.toInt()
 
         return result
-
     }
 }

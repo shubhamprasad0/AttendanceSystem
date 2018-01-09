@@ -157,7 +157,7 @@ class MainActivity : AppCompatActivity() {
         var response = ""
         val serverURL = "http://archdj.pythonanywhere.com/studentinfo/"
         val studentIdJson = """{"username": "$studentId"}"""
-        Log.d("MYLOG", studentIdJson)
+        Log.d("studentlog", studentIdJson)
 
         var httpConnection: HttpURLConnection? = null
 

@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
@@ -23,10 +25,24 @@ import kotlin.collections.ArrayList
 class ConnectionActivity : AppCompatActivity() {
 
     private var bluetoothAdapter: BluetoothAdapter? = null
-    private val REQUEST_BT_DISCOVERABILITY = 1
+    private val REQUEST_BT_DISCOVERABILITY = 3
     private val DURATION = 600
     private val uuid = UUID.fromString("ad50d117-8c99-497d-af7a-929214e53577")
     private lateinit var student: Student
+    private val uiHandler: Handler
+
+    init {
+        uiHandler = object: Handler(Looper.getMainLooper()) {
+            override fun handleMessage(msg: Message) {
+                when(msg.what) {
+                    MessageConstants.MESSAGE_READ -> {
+                        toast(msg.obj.toString())
+                        Log.d("Handle Message", msg.obj.toString())
+                    }
+                }
+            }
+        }
+    }
 
 
     /**
@@ -75,9 +91,13 @@ class ConnectionActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_BT_DISCOVERABILITY && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_BT_DISCOVERABILITY && resultCode == DURATION) {
             toast("Device discoverable for $DURATION seconds")
             acceptConnection()
+//            val intent = Intent(this, AttendanceActivity::class.java)
+//            startActivity(intent)
+        } else {
+            toast("Device not discoverable")
         }
     }
 
@@ -104,10 +124,12 @@ class ConnectionActivity : AppCompatActivity() {
         }
 
         override fun run() {
+            Log.d("mylog", "coming in run of accept thread")
             var socket: BluetoothSocket? = null
 
             while (true) {
                 try {
+                    Log.d("mylog", "server ready")
                     socket = serverSocket?.accept()
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -134,8 +156,8 @@ class ConnectionActivity : AppCompatActivity() {
 
     private fun manageMyConnectedSocket(socket: BluetoothSocket) {
         val t = ConnectedThread(socket)
+        initStudent()
         t.write(student.id.toString().toByteArray())
-        t.cancel()
     }
 
     private inner class ConnectedThread(socket:BluetoothSocket): Thread() {
@@ -143,7 +165,6 @@ class ConnectionActivity : AppCompatActivity() {
         private lateinit var inputStream: InputStream
         private lateinit var outputStream: OutputStream
         private lateinit var buffer: ByteArray
-        val handler = Handler()
 
         init {
 
@@ -172,7 +193,7 @@ class ConnectionActivity : AppCompatActivity() {
                     numBytes = inputStream.read(buffer)
 
                     // Send the obtained bytes to the UI activity
-                    val readMsg = handler.obtainMessage(
+                    val readMsg = uiHandler.obtainMessage(
                             MessageConstants.MESSAGE_READ,
                             numBytes,
                             -1,
@@ -192,7 +213,7 @@ class ConnectionActivity : AppCompatActivity() {
             try {
                 outputStream.write(bytes)
 
-                val writtenMsg = handler.obtainMessage(
+                val writtenMsg = uiHandler.obtainMessage(
                         MessageConstants.MESSAGE_WRITE,
                         -1,
                         -1,
@@ -202,11 +223,11 @@ class ConnectionActivity : AppCompatActivity() {
                 Log.e("BT_SERVER_CONN", "Error occurred when sending data ${e.message}")
 
                 // Send a failure message back to the activity
-                val writeErrorMsg = handler.obtainMessage(MessageConstants.MESSAGE_TOAST)
+                val writeErrorMsg = uiHandler.obtainMessage(MessageConstants.MESSAGE_TOAST)
                 val bundle = Bundle()
                 bundle.putString("toast", "Couldn't send data to the other device")
                 writeErrorMsg.data = bundle
-                handler.sendMessage(writeErrorMsg)
+                uiHandler.sendMessage(writeErrorMsg)
             }
         }
 
